@@ -1,4 +1,6 @@
-# This is a sample Python script.
+from fastapi import FastAPI
+from app.database import  create_tables
+from app.auth import admin, aggregator
 
 app = FastAPI()
 
