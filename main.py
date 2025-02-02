@@ -13,4 +13,7 @@ def print_hi(name):
 if __name__ == '__main__':
     print_hi('PyCharm')
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+@app.on_event('startup')
+async def startup():
+  await create_tables()
+
