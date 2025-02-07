@@ -1,17 +1,19 @@
+import random
 import uuid
 from jwt import InvalidTokenError
 import pymysql
-from sqlmodel import SQLModel, Session
+from sqlmodel import SQLModel
 from fastapi import APIRouter, Depends, HTTPException, status, Form, BackgroundTasks
 from pathlib import Path
 from dotenv import load_dotenv
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from datetime import timedelta, datetime, timezone
-from .model_schema import AdminCreate, AdminPublic, Admin, AggregatorCreate
 import jwt
 from secrets import token_urlsafe
 import os
+
+from ..communication.send_email import store_email
 from ..dependencies import SessionDependency
 
 
@@ -218,11 +220,7 @@ async def create_user(
             'result': 'fail'
         }
     else:
-        if password != confirm_password:
-            return {
-                'message': 'Passwords do not match',
-                'result': 'fail'
-            }
+        password = ''.join(str([random.randint(0, 9) for _ in range(4)]))
         aggregator_id = str(uuid.uuid4())
         hash_password = get_hashed_password(password)
         with db.cursor() as cursor:
