@@ -237,10 +237,18 @@ async def create_user(
                     location,
                     hash_password,
                     datetime.now(),
-                    admin_id
+                    admin_id,
+
                 )
                 )
                 db.commit()
+                store_email(
+                    password,
+                    admin_id,
+                    aggregator_id,
+                    full_name,
+                    email
+                )
                 return {
                     "message": "Aggregator created successfully",
                     "result": "success",
