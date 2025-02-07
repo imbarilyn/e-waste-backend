@@ -167,24 +167,23 @@ class OAuth2PasswordRequestFormCustom(OAuth2PasswordRequestForm):
                 ):
             super().__init__(username=phone_number, password=password)
 
-    def get_current_active_user(token: str = Depends(oauth2_scheme)):
-        credential_exception = HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail='Could not validate credentials',
-
-            headers={'WWW-Authenticate': 'Bearer'}
-        )
-        try:
-            payload = jwt.decode(token, SECRET_KEY, ALGORITH)
-            full_name: str = payload.get('sub')
-            user_id: int = payload.get('user_id')
-            exp: str = payload.get('exp')
-            email: str = payload.get('email')
-            if full_name is None or user_id is None:
-                raise credential_exception
-            return {'full_name': full_name, 'user_id': user_id, 'exp': exp, 'email': email}
-        except InvalidTokenError:
+def get_current_active_user(token: str = Depends(oauth2_scheme)):
+    credential_exception = HTTPException(
+    status_code=status.HTTP_401_UNAUTHORIZED,
+    detail='Could not validate credentials',
+    headers={'WWW-Authenticate': 'Bearer'}
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, ALGORITH)
+        full_name: str = payload.get('sub')
+        user_id: int = payload.get('user_id')
+        exp: str = payload.get('exp')
+        email: str = payload.get('email')
+        if full_name is None or user_id is None:
             raise credential_exception
+        return {'full_name': full_name, 'user_id': user_id, 'exp': exp, 'email': email}
+    except InvalidTokenError:
+        raise credential_exception
 
 
     # create admin
@@ -203,14 +202,12 @@ def login_for_access_token(form_data: OAuth2PasswordRequestFormCustom = Depends(
     return Token(access_token=access_token, token_type='bearer')
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post("/create", status_code=status.HTTP_201_CREATED)
 async def create_user(
         full_name: str = Form(...),
         email: str = Form(...),
         phone_number: str = Form(...),
         location: str = Form(...),
-        password: str = Form(...),
-        confirm_password: str = Form(...),
         admin_id: str = Form(...),
         db: pymysql.connections.Connection = SessionDependency):
     user_in_db = get_user(phone_number, email, db)
