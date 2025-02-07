@@ -1,14 +1,13 @@
 import uuid
 from jwt import InvalidTokenError
 import pymysql
-from sqlmodel import SQLModel, Session
+from sqlmodel import SQLModel
 from fastapi import APIRouter, Depends, HTTPException, status, Form, BackgroundTasks
 from pathlib import Path
 from dotenv import load_dotenv
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from datetime import timedelta, datetime, timezone
-from .model_schema import AdminCreate, AdminPublic, Admin
 import jwt
 from secrets import token_urlsafe
 import os
@@ -32,6 +31,11 @@ email_password = os.getenv('EMAIL_PASSWORD')
 ACCESS_TOKEN_EXPIRE = 7
 
 
+# @app.get("/current-user")
+# async def user(current_user: dict = Depends(get_current_active_user)):
+#   if current_user is None:
+#     raise HTTPException(status_code=401, detail='Authentication failed')
+#   return {'user': user}
 
 
 class Token(SQLModel):
@@ -162,26 +166,6 @@ class OAuth2PasswordRequestFormCustom(OAuth2PasswordRequestForm):
                 ):
             super().__init__(username=phone_number, password=password)
 
-    def get_current_active_user(self: str = Depends(oauth2_scheme)):
-        credential_exception = HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail='Could not validate credentials',
-
-            headers={'WWW-Authenticate': 'Bearer'}
-        )
-        try:
-            payload = jwt.decode(self, SECRET_KEY, ALGORITH)
-            full_name: str = payload.get('sub')
-            user_id: int = payload.get('user_id')
-            exp: str = payload.get('exp')
-            email: str = payload.get('email')
-            if full_name is None or user_id is None:
-                raise credential_exception
-            return {'full_name': full_name, 'user_id': user_id, 'exp': exp, 'email': email}
-        except InvalidTokenError:
-            raise credential_exception
-
-
     # create admin
 @router.post("/token", response_model=Token)
 def login_for_access_token(form_data: OAuth2PasswordRequestFormCustom = Depends(), db: pymysql.connections.Connection = SessionDependency):
@@ -198,40 +182,72 @@ def login_for_access_token(form_data: OAuth2PasswordRequestFormCustom = Depends(
     return Token(access_token=access_token, token_type='bearer')
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
-async def create_user( create_user_request: AdminCreate , db: pymysql.connections.Connection = SessionDependency):
-    user_in_db = get_user(create_user_request.phone_number, create_user_request.email, db)
+def get_current_active_user(token: str = Depends(oauth2_scheme)):
+    credential_exception = HTTPException(
+    status_code=status.HTTP_401_UNAUTHORIZED,
+    detail='Could not validate credentials',
+    headers={'WWW-Authenticate': 'Bearer'}
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, ALGORITH)
+        full_name: str = payload.get('sub')
+        user_id: int = payload.get('user_id')
+        exp: str = payload.get('exp')
+        email: str = payload.get('email')
+        if full_name is None or user_id is None:
+            raise credential_exception
+        return {'full_name': full_name, 'user_id': user_id, 'exp': exp, 'email': email}
+    except InvalidTokenError:
+        raise credential_exception
+@router.post("/")
+async def create_user(
+        full_name: str = Form(...),
+        email: str = Form(...),
+        phone_number: str = Form(...),
+        password: str = Form(...),
+        confirm_password: str = Form(...),
+        db: pymysql.connections.Connection = SessionDependency):
+    user_in_db = get_user(phone_number, email, db)
     if user_in_db:
         return {
             'message': 'Phone number or email already taken',
             'result': 'fail'
         }
     else:
-        if create_user_request.password != create_user_request.confirm_password:
+        if password != confirm_password:
             return {
                 'message': 'Passwords do not match',
                 'result': 'fail'
             }
         admin_id = str(uuid.uuid4())
-        hash_password = get_hashed_password(create_user_request.password)
+        hash_password = get_hashed_password(password)
         with db.cursor() as cursor:
-            new_user = """
-            INSERT INTO e_waste.admin (id, full_name, email, phone_number, hash_password, created_at)
-            VALUES (%s, %s, %s, %s, %s, %s)
-            """
-            cursor.execute(new_user, (
-                admin_id,
-                create_user_request.full_name,
-                create_user_request.email,
-                create_user_request.phone_number,
-                hash_password,
-                datetime.now())
-            )
-            db.commit()
-            return {
-                "message": "Admin created successfully",
-                "result": "success",
-            }
+            try:
+                new_user = """
+                      INSERT INTO e_waste.admin (id, full_name, email, phone_number, hash_password, created_at)
+                      VALUES (%s, %s, %s, %s, %s, %s)
+                      """
+                cursor.execute(new_user, (
+                    admin_id,
+                    full_name,
+                    email,
+                    phone_number,
+                    hash_password,
+                    datetime.now())
+                               )
+                db.commit()
+                return {
+                    "message": "Admin created successfully",
+                    "result": "success",
+                }
+            except Exception as e:
+                print(e)
+                db.rollback()
+                return {
+                    'message': 'Something went wrong, please try again',
+                    'result': 'fail'
+                }
+
 
 
 #
