@@ -1,5 +1,4 @@
-from app.auth.admin_reset_password_email import SMTP_SERVER
-from app.database import email_password, smtp_server, frontend_url, email_password, sender_email, receiver_email
+from app.database import smtp_server, frontend_url, email_password, sender_email
 from app.dependencies import SessionDependency
 import pymysql
 import uuid
@@ -53,23 +52,34 @@ def store_email(
             </body>
         </html>
         """
+    print(f'Receiver email--: {aggregator_email}')
     with db.cursor() as cursor:
         try:
             query = """
-            INSERT INTO outbox (id, subject, body, status, created_at, admin_id, aggregator_id)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO outbox (id, head, body, created_at, admin_id, aggregator_id)
+            VALUES (%s, %s, %s, %s, %s, %s)
             """
-            cursor.execute(query, (email_id, subject, body, Status.pending.value, created_at, admin_id, aggregator_id))
+            cursor.execute(query, (email_id, head, body, created_at, admin_id, aggregator_id))
             db.commit()
-            send_aggregator_creation_email(
-                db,
-                email_id,
-                subject,
+            is_email_sent = send_aggregator_creation_email(
+                head,
                 body,
                 aggregator_email
             )
+            if is_email_sent:
+                query = """
+                UPDATE outbox SET status = %s WHERE id = %s
+                """
+                cursor.execute(query, ('sent', email_id))
+                db.commit()
+            else:
+                query = """
+                UPDATE outbox SET status = %s WHERE id = %s
+                """
+                cursor.execute(query, ('failed', email_id))
+                db.commit()
         except Exception as e:
-            print(e)
+            print(f'Error storing email {e}')
             db.rollback()
             return {
                 'message': 'Email not stored',
@@ -77,45 +87,25 @@ def store_email(
             }
 
 
-def send_aggregator_creation_email(db: pymysql.connections.Connection, email_id: str, subject: str, body: str,
-                                   aggregator_email: str):
+def send_aggregator_creation_email(head: str, body: str, aggregator_email: str):
     try:
         msg = EmailMessage()
-        msg['Subject'] = subject
+        msg['Subject'] = head
         msg['From'] = formataddr(('You are an Aggregator', f'{sender_email}'))
         msg['To'] = aggregator_email
         msg.add_alternative(
             body,
-            subject='html'
+            subtype='html'
         )
 
-        with smtplib.SMTP(SMTP_SERVER, PORT) as server:
+        with smtplib.SMTP(smtp_server, PORT) as server:
             server.starttls()
             server.login(sender_email, email_password)
             server.sendmail(sender_email, aggregator_email, msg.as_string())
             server.quit()
-            with db.cursor() as cursor:
-                try:
-                    query = """
-                    UPDATE outbox SET status = %s WHERE id = %s
-                    """
-                    cursor.execute(query, (Status.sent.value, email_id))
-                    db.commit()
-                except Exception as e:
-                    print(f'Error updating outbox {e}')
-                    db.rollback()
+        print('Email sent')
+        return True
     except Exception as e:
-        with db.cursor() as cursor:
-            try:
-                query = """
-                           UPDATE outbox SET status = %s WHERE id = %s
-                           """
-                cursor.execute(query, (Status.failed.value, email_id))
-                db.commit()
-            except Exception as e:
-                db.rollback()
-                print(f'Error updating outbox {e}')
-
-
-
+        print(f'Error sending email {e}')
+        return False
 
