@@ -10,11 +10,6 @@ from email.utils import formataddr
 import smtplib
 
 
-class Status(str, Enum):
-    pending = 'pending'
-    sent = 'sent'
-    failed = 'failed'
-
 
 PORT = 587
 
@@ -30,7 +25,7 @@ def store_email(
     email_id = str(uuid.uuid4())
     created_at = datetime.now()
 
-    subject = 'Aggregator Account Creation'
+    head= 'Aggregator Account Creation'
     body = f"""\
         <html>
             <body>               
@@ -53,7 +48,8 @@ def store_email(
 
 
 
-            <p>&copy; 2025 [Your Company Name] | Need help? <a href="mailto:support@yourdomain.com">Contact Support</a></p>
+            <p>&copy; 2025 M-Zawadi Group
+             | Need help? <a href="mailto:support@yourdomain.com">Contact Support</a></p>
             </body>
         </html>
         """
