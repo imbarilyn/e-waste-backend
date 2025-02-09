@@ -24,9 +24,9 @@ def store_email(
         admin_id: str,
         aggregator_id: str,
         aggregator_name: str,
-        aggregator_email: str
+        aggregator_email: str,
+        db: pymysql.connections.Connection = SessionDependency
 ):
-    db: pymysql.connections.Connection = SessionDependency
     email_id = str(uuid.uuid4())
     created_at = datetime.now()
 
