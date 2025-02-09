@@ -202,7 +202,7 @@ def login_for_access_token(form_data: OAuth2PasswordRequestFormCustom = Depends(
     return Token(access_token=access_token, token_type='bearer')
 
 
-@router.post("/create", status_code=status.HTTP_201_CREATED)
+@router.post("/create")
 async def create_user(
         full_name: str = Form(...),
         email: str = Form(...),
@@ -217,7 +217,7 @@ async def create_user(
             'result': 'fail'
         }
     else:
-        password = ''.join(str([random.randint(0, 9) for _ in range(4)]))
+        password = ''.join([str(random.randint(0, 9)) for _ in range(4)])
         aggregator_id = str(uuid.uuid4())
         hash_password = get_hashed_password(password)
         with db.cursor() as cursor:
@@ -238,20 +238,21 @@ async def create_user(
 
                 )
                 )
-                db.commit()
                 store_email(
                     password,
                     admin_id,
                     aggregator_id,
                     full_name,
-                    email
+                    email,
+                    db
                 )
+                db.commit()
                 return {
                     "message": "Aggregator created successfully",
                     "result": "success",
                 }
             except Exception as e:
-                print(e)
+                print(f'Create aggregator exception--- f{e}')
                 return {
                     'message': 'Something went wrong, please try again',
                     'result': 'fail'
