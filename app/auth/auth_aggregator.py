@@ -230,7 +230,7 @@ async def create_user(
         phone_number: str = Form(...),
         location: str = Form(...),
         admin_id: str = Form(...),
-        db: pymysql.connections.Connection = SessionDependency):
+        db: pymysql.connections.Connection = SessionDependency, admin: dict = Depends(get_active_admin)):
     user_in_db = get_user(phone_number, email, db)
     if user_in_db:
         return {
