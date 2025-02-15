@@ -88,6 +88,35 @@ def get_user(phone_number: str, email: str, db: pymysql.connections.Connection):
             return user
         return None
 
+def get_active_admin(token: str = Depends(oauth2_scheme) , db: pymysql.connections.Connection = SessionDependency):
+    credential_exception = HTTPException(
+        status_code= status.HTTP_401_UNAUTHORIZED,
+        detail='Could not validate credentials',
+        headers={'WWW-Authenticate': 'Bearer'}
+    )
+
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, ALGORITH)
+        email: str = payload.get('email')
+        exp: int = payload.get('exp')
+        print(f"Expiry is on --- {datetime.now() > datetime.fromtimestamp(int(exp))}")
+        is_expired = datetime.now() > datetime.fromtimestamp(exp)
+        if email is None:
+            raise credential_exception
+        token_data = TokenData(email= email, exp=exp)
+    except InvalidTokenError:
+        raise credential_exception
+    user = get_user_by_email(db, token_data.email)
+    if user is None or is_expired:
+        raise credential_exception
+    return user
+
+
+
+
+
+
 def authenticate_user(phone_number: str, password: str, db: pymysql.connections.Connection):
     # user = get_user(phone_number, email, db)
     with db.cursor() as cursor:
