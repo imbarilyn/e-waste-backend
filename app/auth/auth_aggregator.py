@@ -15,13 +15,15 @@ import os
 
 from ..communication.send_email import store_email
 from ..dependencies import SessionDependency
+from app.auth.auth_admin import get_active_admin
+from app.auth.auth_admin import TokenData
 
 
 
 
 router = APIRouter(
-    prefix="/aggregator",
-    tags=['aggregator']
+    prefix="/auth/aggregator",
+    tags=['auth-aggregator']
 )
 
 
@@ -29,7 +31,7 @@ current_dir = Path(__file__).resolve().parent if __file__ in locals() else Path.
 env_directory = current_dir / '.env'
 load_dotenv(env_directory)
 bcrypt_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='aggregator/token')
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='auth/aggregator/token')
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 ALGORITH= os.getenv('ALGORITHM')
