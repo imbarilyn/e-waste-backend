@@ -31,11 +31,7 @@ email_password = os.getenv('EMAIL_PASSWORD')
 ACCESS_TOKEN_EXPIRE = 7
 
 
-# @app.get("/current-user")
-# async def user(current_user: dict = Depends(get_current_active_user)):
-#   if current_user is None:
-#     raise HTTPException(status_code=401, detail='Authentication failed')
-#   return {'user': user}
+
 
 
 class Token(SQLModel):
@@ -45,6 +41,9 @@ class Token(SQLModel):
 class ForgottenPassword(SQLModel):
     email: str
 
+class TokenData(SQLModel):
+    email: str
+    exp: int
 
 def verify_password(plain_password: str, hash_password: str):
     return bcrypt_context.verify(plain_password, hash_password)
