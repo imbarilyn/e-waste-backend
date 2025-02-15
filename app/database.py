@@ -100,7 +100,23 @@ CREATE TABLE IF NOT EXISTS aggregators(
     admin_id CHAR(36),
     FOREIGN KEY (admin_id) REFERENCES admin(id) ON DELETE CASCADE
     )
+    """,
+
     """
+    CREATE TABLE IF NOT EXISTS products(
+    id CHAR(36) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    regular_price varchar(255) NOT NULL,
+    type varchar(255) NOT NULL,
+    short_description TEXT,
+    stock_quantity varchar(255) NOT NULL,
+    weight varchar(255) NOT NULL,
+    images JSON NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    aggregator_id CHAR(36),
+    FOREIGN KEY (aggregator_id) REFERENCES aggregators(id) ON DELETE CASCADE
+    )
+    """,
 ]
 
 async def create_tables():
