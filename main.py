@@ -15,6 +15,12 @@ app.add_middleware(
 )
 
 
+app.include_router(auth_admin.router)
+app.include_router(auth_aggregator.router)
+
+from app.routers import admin, aggregator
+
+app.include_router(aggregator.router)
 app.include_router(admin.router)
 app.include_router(aggregator.router)
 
