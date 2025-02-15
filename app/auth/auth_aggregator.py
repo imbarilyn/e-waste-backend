@@ -188,7 +188,7 @@ class OAuth2PasswordRequestFormCustom(OAuth2PasswordRequestForm):
                 ):
             super().__init__(username=phone_number, password=password)
 
-def get_current_active_user(token: str = Depends(oauth2_scheme)):
+def get_current_active_aggregator(token: str = Depends(oauth2_scheme)):
     credential_exception = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
     detail='Could not validate credentials',
