@@ -93,6 +93,25 @@ def get_user(phone_number: str, email: str, db: pymysql.connections.Connection):
             return user
         return None
 
+def get_active_aggregator(token: str = Depends(oauth2_scheme) , db: pymysql.connections.Connection = SessionDependency):
+    credential_exception = HTTPException(
+        status_code= status.HTTP_401_UNAUTHORIZED,
+        detail='Could not validate credentials',
+        headers={'WWW-Authenticate': 'Bearer'}
+    )
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, ALGORITH)
+        full_name: str = payload.get('sub')
+        user_id: int = payload.get('user_id')
+        exp: str = payload.get('exp')
+        email: str = payload.get('email')
+        if full_name is None or user_id is None:
+            raise credential_exception
+        return {'full_name': full_name, 'user_id': user_id, 'exp': exp, 'email': email}
+    except InvalidTokenError:
+        raise credential_exception
+
 def authenticate_user(phone_number: str, password: str, db: pymysql.connections.Connection):
     with db.cursor() as cursor:
         query = """
