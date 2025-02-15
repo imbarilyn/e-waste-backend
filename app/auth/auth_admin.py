@@ -14,15 +14,15 @@ import os
 from ..dependencies import SessionDependency
 
 router = APIRouter(
-    prefix='/admin',
-    tags=['admin']
+    prefix='/auth/admin',
+    tags=['auth-admin']
 )
 
 current_dir = Path(__file__).resolve().parent if __file__ in locals() else Path.cwd()
 env_directory = current_dir / '.env'
 load_dotenv(env_directory)
 bcrypt_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='admin/token')
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='auth/admin/token')
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 ALGORITH= os.getenv('ALGORITHM')
