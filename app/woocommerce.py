@@ -26,6 +26,9 @@ class Product(SQLModel):
     images: list[str]
     stock_quantity: int
     weight: str
+    categories: dict[str, int]
+    post_author: str
+    dokan_token: str
 
 def sync_with_woocommerce(product: Product):
     payload = {
@@ -39,7 +42,12 @@ def sync_with_woocommerce(product: Product):
         "meta_data": [{"key": "unit", "value": product.weight}]
     }
 
-    response = requests.post(f'{woocommerce_api_url}/wp-json/wc/v3/products', json=payload, auth=(woocommerce_consumer_key, woocommerce_consumer_secret))
+    response = requests.post(
+            f'{woocommerce_api_url}/wp-json/dokan/v1/products/',
+            headers={"Authorization": f'Bearer {product.dokan_token}'},    
+            json=payload
+    )
+    print('response', response.json())
     print(f'response {response.json()}')
         # if response.status_code == 201:
         #     return True
