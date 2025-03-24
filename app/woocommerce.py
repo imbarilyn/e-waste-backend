@@ -36,8 +36,56 @@ def sync_with_woocommerce(product: Product):
 
     response = requests.post(f'{woocommerce_api_url}/wp-json/wc/v3/products', json=payload, auth=(woocommerce_consumer_key, woocommerce_consumer_secret))
     print(f'response {response.json()}')
-    if response.status_code == 201:
+        # if response.status_code == 201:
+        #     return True
+    return  True
+    # return None
 
-        return True
-    return False
+def get_vendor_token(username, password):
+    print(f'Vendor user name and password {username} {password}')
+    payload = {
+        "username": username,
+        "password": password
+    }
+    url = f"{wp_url}/wp-json/jwt-auth/v1/token"
+    response = requests.post(url, payload)
+    print(f"Response from vendor token: {response.json()['token']}")
+    if response.status_code == 200:
+        try:
+            resp = response.json()
+            token = resp['token']
+            return token
+        except json.JSONDecoder:
+            print(f"Failed to decode response f{response.json()}")
+            return None
+    else:
+        print(f"The failed status code is --- {response.json()}")
+        return None
+
+
+# get wordpress token
+def get_wp_token():
+    payload = {
+        "username": wp_username,
+        "password": wp_password
+    }
+    url = f"{wp_url}/wp-json/jwt-auth/v1/token"
+    response = requests.post(url, payload)
+    if response.status_code == 200:
+        try:
+            resp = response.json()
+            token = resp.get('token')
+            return token
+        except json.JSONDecoder:
+            print(f"Failed to decode response")
+            return None
+    else:
+        print(f"The failed status code is --- {response.status_code}")
+        return None
+
+
+
+
+
+
 #
