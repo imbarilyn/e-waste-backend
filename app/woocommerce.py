@@ -12,6 +12,11 @@ load_dotenv(env_file)
 woocommerce_api_url = os.getenv('WOOCOMMERCE_API_URL')
 woocommerce_consumer_key = os.getenv('CONSUMER_KEY')
 woocommerce_consumer_secret = os.getenv('CONSUMER_SECRET')
+wp_username = os.getenv('WP_USERNAME')
+wp_password = os.getenv('WP_PASSWORD')
+backend_url = os.getenv('BACKEND_URL')
+wp_url = os.getenv('WP_URL')
+frontend_url = os.getenv('FRONTEND_URL')
 
 class Product(SQLModel):
     name: str
