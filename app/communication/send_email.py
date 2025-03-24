@@ -29,26 +29,16 @@ def store_email(
         <html>
             <body>               
             <p>Hello <strong>{aggregator_name}</strong>,</p>
-            <p>We’re excited to have you on board! Your account has been successfully created. Below are your login details:</p>
+            <p>We’re excited to have you on board! Your account has been successfully created</p>
 
-            <p><strong>Email:</strong> {aggregator_email}</p>
-            <p><strong>Temporary Password:</strong> {password}</p>
-
-            <p>Please click the button below to log in and set up your new password:</p>
-            <a href="{frontend_url}/auth/aggregator-login" class="button">Login to Your Account</a>
-            <p>If you are not aware of your account creation, please ignore this email or contact our support team.</p>
-
-
+            <p>Please be patient as the admin activates your account for use. You shall receive another email with your credentials for your account once activated.</p>
+            <span>If you are not aware of your account creation, please ignore this email or contact our support team.</span>
 
             <p>Thank you.</p>
                 <p>Best Regards,</p>
                 <p>Habahaba management</p>
 
-
-
-
-            <p>&copy; 2025 M-Zawadi Group
-             | Need help? <a href="mailto:support@yourdomain.com">Contact Support</a></p>
+            <p>&copy; 2025 M-Zawadi Group | Need help? <a href="mailto:support@yourdomain.com">Contact Support</a></p>
             </body>
         </html>
         """
