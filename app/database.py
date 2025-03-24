@@ -20,30 +20,25 @@ sender_email= os.getenv('SENDER_EMAIL')
 receiver_email= os.getenv('RECEIVER_EMAIL')
 frontend_url=os.getenv('FRONTEND_URL')
 
+# isServer = True
+isServer = False
 
-
-
-
-
-
-DB_CONFIG = {
-    "host":localhost,
-    "user": user,
-    "password": password,
-    "database": database,
-    "cursorclass": DictCursor
-}
-
-#
-# DB_CONFIG = {
-#     "host": 'localhost',
-#     "user": 'root',
-#     "password": 'Developer/03',
-#     "database": 'e_waste',
-#     "cursorclass": DictCursor
-# }
-print(f"DB Config: {DB_CONFIG['database']}")
-
+if not isServer:
+    DB_CONFIG = {
+        "host": localhost,
+        "user": user,
+        "password": password,
+        "database": database,
+        "cursorclass": DictCursor
+    }
+else:
+    DB_CONFIG = {
+        "host": localhost,
+        "user": 'e_waste',
+        "password": password,
+        "database": database,
+        "cursorclass": DictCursor
+    }
 
 def get_db():
     connection = pymysql.connect(**DB_CONFIG)
