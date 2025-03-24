@@ -66,12 +66,16 @@ CREATE TABLE IF NOT EXISTS admin(
  """
 CREATE TABLE IF NOT EXISTS aggregators(
     id CHAR(36) PRIMARY KEY,
-    full_name VARCHAR(100) NOT NULL,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     phone_number CHAR(10) UNIQUE NOT NULL,
-    location VARCHAR(255) NOT NULL,
     hash_password VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    dokan_vendor_id VARCHAR(255) NULL DEFAULT  NULL,
+    store_name VARCHAR(255) UNIQUE NOT NULL,
+    address json NOT NULL,
+    categories json NOT NULL,
     admin_id CHAR(36),
     FOREIGN KEY (admin_id) REFERENCES admin(id) ON DELETE CASCADE
 )
@@ -115,6 +119,18 @@ CREATE TABLE IF NOT EXISTS aggregators(
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     aggregator_id CHAR(36),
     FOREIGN KEY (aggregator_id) REFERENCES aggregators(id) ON DELETE CASCADE
+    )
+    """,
+
+    """
+    CREATE TABLE IF NOT EXISTS secrets(
+    id CHAR(36) PRIMARY KEY,
+    secret_pass VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    aggregator_id CHAR(36),
+    FOREIGN KEY (aggregator_id) REFERENCES aggregators(id) ON DELETE CASCADE,
+    dokan_vendor_id VARCHAR(255) NOT NULL,
+    shop_url VARCHAR(255) NULL
     )
     """,
 ]
