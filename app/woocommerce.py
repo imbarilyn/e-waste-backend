@@ -1,8 +1,12 @@
+import json
 from pathlib import Path
 import os
 from dotenv import load_dotenv
 from sqlmodel import SQLModel
 import requests
+import pymysql
+from app.dependencies import SessionDependency
+# from app.routers.aggregator import  Product
 
 current_dir = Path(__file__).resolve().parent if __file__ in locals() else Path.cwd()
 env_file = current_dir / '.env'
@@ -30,16 +34,44 @@ class Product(SQLModel):
     post_author: str
     dokan_token: str
 
-def sync_with_woocommerce(product: Product):
+# def get_pass(product: Product, db: pymysql.connections.Connection = SessionDependency):
+#     print(f'product.post_author: {product.post_author}')
+#     with db.cursor() as cursor:
+#         try:
+#             query = """
+#              SELECT * FROM e_waste.secrets WHERE dokan_vendor_id = %s
+#              """
+#             cursor.execute(query, product.post_author)
+#             result = cursor.fetchone()
+#             # print('result', result)
+#             return result
+#         except Exception as e:
+#             print(f'Error fetching secret pass, {e}')
+#             return None
+
+def sync_with_woocommerce(product: Product, db: pymysql.connections.Connection = SessionDependency):
+    # Basic auth with woocommerce
+    # vendor_credentials = get_pass(product, db)
+    # if vendor_credentials is None:
+    #     return False
+    # username = vendor_credentials['username']
+    # password = vendor_credentials['secret_pass']
+    #
+    # vendor_token = get_vendor_token(username, password)
+    # print(f'vendor_token: {vendor_token}')
+    # if vendor_token:
+    print(f'Product: {product}')
     payload = {
-        "name": product.name,
-        "type": product.stock_type,
-        "regular_price": product.regular_price,
-        "short_description": product.short_description,
-        # "images": [{"src": url} for url in product.images],
-        "images": [{"src": "https://recommerce.mzawadi.com/wp-content/uploads/2025/02/T_2_back.jpg"}],
-        "stock_quantity": product.stock_quantity,
-        "meta_data": [{"key": "unit", "value": product.weight}]
+            "name": product.name,
+            "type": product.stock_type,
+            "regular_price": product.regular_price,
+            "short_description": product.short_description,
+            # "images": [{"src": url} for url in product.images],
+            "images": [{"src": "https://recommerce.mzawadi.com/wp-content/uploads/2025/02/T_2_back.jpg"}],
+            "stock_quantity": product.stock_quantity,
+            "manage_stock": True,
+            "meta_data": [{"key": "unit", "value": product.weight}],
+            "categories": [{"id": category_id} for category_id in product.categories.values()],
     }
 
     response = requests.post(
@@ -102,3 +134,6 @@ def get_wp_token():
 
 
 #
+
+
+
